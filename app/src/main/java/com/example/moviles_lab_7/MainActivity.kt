@@ -25,3 +25,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Preview
+@Composable
+fun ScreenUserPreview() {
+    ScreenUser()
+}

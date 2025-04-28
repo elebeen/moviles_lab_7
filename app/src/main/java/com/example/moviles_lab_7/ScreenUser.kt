@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ScreenUser() {
     val context = LocalContext.current
-    var db: UserDatabase
+    val db: UserDatabase
     var id        by remember { mutableStateOf("") }
     var firstName by remember { mutableStateOf("") }
     var lastName  by remember { mutableStateOf("") }
@@ -67,7 +67,7 @@ fun ScreenUser() {
             onClick = {
                 val user = User(0,firstName, lastName)
                 coroutineScope.launch {
-                    AgregarUsuario(user = user, dao = dao)
+                    addUser(user = user, dao = dao)
                 }
                 firstName = ""
                 lastName = ""
@@ -85,6 +85,18 @@ fun ScreenUser() {
             }
         ) {
             Text("Listar Usuarios", fontSize=16.sp)
+        }
+
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    deleteLastUser(dao = dao)
+                    val data = getUsers(dao = dao)
+                    dataUser.value = data
+                }
+            }
+        ) {
+            Text("Eliminar Ultimo Usuario", fontSize=16.sp)
         }
         Text(
             text = dataUser.value, fontSize = 20.sp
@@ -113,7 +125,7 @@ suspend fun getUsers(dao:UserDao): String {
     return rpta
 }
 
-suspend fun AgregarUsuario(user: User, dao:UserDao): Unit {
+suspend fun addUser(user: User, dao:UserDao): Unit {
     //LaunchedEffect(Unit) {
     try {
         dao.insert(user)
@@ -122,4 +134,17 @@ suspend fun AgregarUsuario(user: User, dao:UserDao): Unit {
         Log.e("User","Error: insert: ${e.message}")
     }
     //}
+}
+
+suspend fun deleteLastUser(dao: UserDao){
+    try {
+        val lastUser = dao.getLastUser()
+        if (lastUser != null) {
+            dao.deleteById(lastUser.uid)
+        } else {
+            Log.d("User", "No users found to delete.")
+        }
+    } catch (e: Exception) {
+        Log.e("User", "Error: delete: ${e.message}")
+    }
 }
